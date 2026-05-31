@@ -1,7 +1,8 @@
+import { DomainError } from './domain.error';
 
-
-export class InvalidEmailError extends Error {
-    constructor(email: string) {
-        super(`Email is invalid`)
-    }
+/** Se lanza cuando el formato del email no cumple las reglas del value object Email. */
+export class InvalidEmailError extends DomainError {
+  constructor() {
+    super('Email is invalid', 'INVALID_EMAIL');
+  }
 }
