@@ -26,19 +26,34 @@ enum TaskStatus {
   CANCELLED
 }
 
-  model User {
-    id        String   @id @default(uuid())
-    name      String
-    email     String   @unique
-    password  String
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
 
-    tasks     Task[]
+  tasks          Task[]
+  refreshTokens  RefreshToken[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("users")
-  }
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId])
+
+  @@map("refresh_tokens")
+}
 
 model Task {
   id          String        @id @default(uuid())
