@@ -1,13 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma.service';
+import { PrismaModule } from './shared/prisma.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
+/**
+ * Módulo raíz de la aplicación.
+ * Registra los slices principales: user y auth.
+ */
 @Module({
-  imports: [],
-  controllers: [AppController, UserController],
-  providers: [AppService, UserService, PrismaService],
+  imports: [PrismaModule, UserModule, AuthModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
+
