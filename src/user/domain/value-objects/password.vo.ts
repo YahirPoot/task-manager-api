@@ -1,30 +1,26 @@
-import { InvalidPasswordError } from '../errors/invalid-password.error';
+import { CustomError } from '../../../shared/errors/custom.error';
 
 /**
- * Value object para contraseña en texto plano durante registro o cambio.
- * Valida complejidad; el hash se genera fuera del dominio (infra/application).
+ * Value object que representa una contraseña en texto plano válida.
+ * Solo se usa durante el registro o cambio de credenciales para validar
+ * las políticas de seguridad (longitud, complejidad, etc.) antes de hashear.
  */
 export class Password {
   private constructor(private readonly value: string) {}
 
   /**
-   * Crea una contraseña validando reglas de complejidad.
-   * Requiere mayúscula, minúscula y número o carácter especial.
-   * @throws {InvalidPasswordError} Si no cumple los requisitos.
+   * Valida la contraseña según las políticas de seguridad.
+   * Regla de negocio: mínimo 6 caracteres.
+   * @throws {CustomError} Si no cumple los requisitos.
    */
   static create(raw: string): Password {
-    const normalized = raw.trim();
-    if (
-      !/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(
-        normalized,
-      )
-    ) {
-      throw new InvalidPasswordError();
+    if (!raw || raw.length < 6) {
+      throw CustomError.badRequest('Password must be at least 6 characters long.');
     }
-    return new Password(normalized);
+    return new Password(raw);
   }
 
-  /** Retorna el valor en texto plano para ser hasheado por la capa de infraestructura. */
+  /** Retorna la contraseña en texto plano para que el hasher la procese. */
   getValue(): string {
     return this.value;
   }

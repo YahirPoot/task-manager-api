@@ -1,4 +1,4 @@
-import { InvalidEmailError } from '../errors/invalid-email.error';
+import { CustomError } from '../../../shared/errors/custom.error';
 
 /**
  * Value object que representa un email válido y normalizado.
@@ -9,12 +9,17 @@ export class Email {
 
   /**
    * Crea un email validando formato y normalizando (trim + minúsculas).
-   * @throws {InvalidEmailError} Si el formato no es válido.
+   * @throws {CustomError} Si el valor es vacío, nulo o tiene formato inválido.
    */
   static create(raw: string): Email {
+    // Guardia temprana: evita crash con TypeError si raw es undefined o null
+    if (!raw) {
+      throw CustomError.badRequest('Email is required.');
+    }
+
     const normalized = raw.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
-      throw new InvalidEmailError();
+      throw CustomError.badRequest('Email format is invalid.');
     }
     return new Email(normalized);
   }

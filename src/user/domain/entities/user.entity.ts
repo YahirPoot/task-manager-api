@@ -2,23 +2,64 @@ import { Email } from '../value-objects/email.vo';
 
 /**
  * Entidad de dominio que representa un usuario de la aplicación.
- * Encapsula identidad, datos personales y credenciales (hash).
- * No depende de NestJS ni de Prisma.
+ *
+ * Reglas de negocio que protege:
+ * - El nombre debe tener al menos 2 caracteres.
+ * - El email debe ser válido y se encapsula como Value Object.
+ * - La contraseña nunca se almacena en texto plano; solo el hash.
+ *
+ * No depende de NestJS ni de Prisma — es puro TypeScript.
  */
 export class UserEntity {
+  /**
+   * Constructor privado: obliga a usar los métodos de fábrica estáticos.
+   * Esto garantiza que cualquier instancia cumple las invariantes del dominio.
+   */
   private constructor(
     readonly id: string,
     private name: string,
     private email: Email,
-    /** Hash de la contraseña; nunca almacenar texto plano. */
+    /** Hash de la contraseña generado en la capa de infraestructura/aplicación. */
     private passwordHash: string,
     readonly createdAt: Date,
     readonly updatedAt: Date,
   ) {}
 
   /**
-   * Reconstruye un usuario a partir de datos ya persistidos en base de datos.
-   * Usado por la capa de infraestructura al leer registros con Prisma.
+   * Fábrica para crear un NUEVO usuario, aplicando reglas de negocio.
+   * Lanza un error si el nombre es inválido o si falta el hash de contraseña.
+   *
+   * @param id          - UUID generado antes de llamar a esta fábrica.
+   * @param name        - Nombre completo del usuario (mínimo 2 caracteres).
+   * @param email       - Value Object Email ya validado.
+   * @param passwordHash - Hash de la contraseña generado fuera del dominio.
+   */
+  static create(
+    id: string,
+    name: string,
+    email: Email,
+    passwordHash: string,
+  ): UserEntity {
+    const trimmedName = name?.trim();
+
+    // Invariante: el nombre es obligatorio y no puede ser demasiado corto.
+    if (!trimmedName || trimmedName.length < 2) {
+      throw new Error('El nombre debe tener al menos 2 caracteres.');
+    }
+
+    // Invariante: el hash de contraseña es obligatorio para poder autenticar al usuario.
+    if (!passwordHash) {
+      throw new Error('El hash de contraseña es requerido.');
+    }
+
+    const now = new Date();
+    return new UserEntity(id, trimmedName, email, passwordHash, now, now);
+  }
+
+  /**
+   * Fábrica para RECONSTRUIR un usuario a partir de datos ya persistidos en base de datos.
+   * No valida las reglas de negocio porque los datos ya fueron validados al crearse.
+   * Usado por el mapper de infraestructura.
    */
   static fromPersistence(
     id: string,
@@ -28,14 +69,7 @@ export class UserEntity {
     createdAt: Date,
     updatedAt: Date,
   ): UserEntity {
-    return new UserEntity(
-      id,
-      name,
-      email,
-      passwordHash,
-      createdAt,
-      updatedAt,
-    );
+    return new UserEntity(id, name, email, passwordHash, createdAt, updatedAt);
   }
 
   /** Devuelve el nombre visible del usuario. */
@@ -43,12 +77,12 @@ export class UserEntity {
     return this.name;
   }
 
-  /** Devuelve el email encapsulado como value object. */
+  /** Devuelve el email encapsulado como Value Object. */
   getEmail(): Email {
     return this.email;
   }
 
-  /** Devuelve el hash de la contraseña (uso interno; no exponer en APIs). */
+  /** Devuelve el hash de la contraseña — solo para uso interno de autenticación. */
   getPasswordHash(): string {
     return this.passwordHash;
   }

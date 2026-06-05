@@ -1,67 +1,40 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
-import { UserModel } from '../../generated/prisma/models';
-import { GetUserByIdUseCase } from '../application/use-cases/get-user-by-id.use-case';
-import { UserResponseDto } from './dto/user-response.dto';
-import { UserService } from '../user.service';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { IUserService } from '../application/contracts/user-service.interface';
+import { RegisterUserDto, UserDto } from '../application/dto/user.dto';
 
 /**
- * Capa presentation del slice users: expone endpoints HTTP.
- * Delega lógica a use cases (clean) o temporalmente a UserService (legacy).
+ * Controlador HTTP del slice user.
+ *
+ * Expone los endpoints de gestión de usuarios.
+ * Se comunica con la capa de aplicación únicamente a través de IUserService.
+ *
+ * Los errores son capturados globalmente por CustomExceptionFilter.
  */
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(
-    private readonly getUserByIdUseCase: GetUserByIdUseCase,
-    private readonly userService: UserService,
+    /** Contrato público del slice — no se inyecta la implementación concreta */
+    private readonly userService: IUserService,
   ) {}
 
   /**
-   * Obtiene un usuario por id usando arquitectura vertical slice + clean.
-   * GET /user/user/:id
+   * GET /users/:id
+   * Retorna los datos públicos de un usuario por su ID.
    */
-  @Get('user/:id')
-  async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
-    return this.getUserByIdUseCase.execute(id);
+  @Get(':id')
+  async getUserById(@Param('id') id: string): Promise<UserDto> {
+    return this.userService.getUserById(id);
   }
 
   /**
-   * Lista todos los usuarios (pendiente de migrar a use case).
-   * GET /user/get-users
+   * POST /users/register
+   *
+   * Registra un nuevo usuario.
+   * Este endpoint existe para uso directo del slice user.
+   * El flujo principal de registro pasa por POST /auth/register.
    */
-  @Get('get-users')
-  async getUsers(): Promise<UserModel[] | null> {
-    return this.userService.users({});
-  }
-
-  /**
-   * Registra un usuario (pendiente de migrar a use case).
-   * POST /user/create-user
-   */
-  @Post('create-user')
-  async registerUser(
-    @Body()
-    userData: {
-      name: string;
-      email: string;
-      password: string;
-    },
-  ): Promise<UserModel> {
-    return this.userService.createUser(userData);
-  }
-
-  /**
-   * Elimina un usuario por id (pendiente de migrar a use case).
-   * DELETE /user/delete
-   */
-  @Delete('delete')
-  async deleteUser(@Param('id') id: string): Promise<UserModel> {
-    return this.userService.deleteUser({ id: id });
+  @Post('register')
+  async register(@Body() body: RegisterUserDto): Promise<UserDto> {
+    return this.userService.register(body);
   }
 }
