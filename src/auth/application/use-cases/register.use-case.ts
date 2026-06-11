@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { IHasher } from '../contracts/hasher.interface';
 import { IUserService } from 'src/user/application/contracts/user-service.interface';
-import { UserDto } from 'src/user/application/dto/user.dto';
+import { IToken } from '../contracts/token.interface';
+import { CustomError } from 'src/shared/errors/custom.error';
+import { RegisterResponseDto } from 'src/auth/presentation/dto/register-response.dto';
 
 /**
  * Caso de Uso: Registro de un nuevo usuario desde el punto de entrada de autenticación.
@@ -20,11 +22,14 @@ export class RegisterUseCase {
     private readonly hasher: IHasher,
     /** Contrato público del slice user — el único canal de comunicación entre slices */
     private readonly userService: IUserService,
+    /** Contrato para generar los tokens - implementado en infraestructura */
+    private readonly tokenService: IToken,
   ) {}
 
   /**
    * Ejecuta el registro de un usuario:
    * - Hashea la contraseña de manera segura.
+   * - Genera el token de acceso y el token de refresco solo si se creo el usuario.
    * - Delega la persistencia al slice de usuarios.
    * - Retorna los datos públicos del usuario registrado (sin contraseña).
    *
@@ -32,11 +37,26 @@ export class RegisterUseCase {
    * @param email    - Correo electrónico del usuario.
    * @param password - Contraseña en texto plano (se hashea antes de persistir).
    */
-  async execute(name: string, email: string, password: string): Promise<UserDto> {
+  async execute(name: string, email: string, password: string): Promise<RegisterResponseDto> {
     // Hashear la contraseña — el texto plano nunca llega al slice user
     const passwordHash = await this.hasher.hash(password);
 
+    // Generar el token de acceso y el token de refresco solo si se creo el usuario
     // Delegar el registro al slice user vía el contrato IUserService
-    return this.userService.register({ name, email, passwordHash });
+    const user = await this.userService.register({ name, email, passwordHash });
+
+    if (!user) {
+      throw CustomError.badRequest('There was an error and the user could not be created')
+    }
+
+    const accessToken = await this.tokenService.generateAccessToken(user.id, user.email);
+    const refreshToken = await this.tokenService.generateRefreshToken(user.id);
+    
+
+    return {
+      user,
+      accessToken,
+      refreshToken
+    } 
   }
 }
