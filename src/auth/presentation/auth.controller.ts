@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { RegisterUseCase } from '../application/use-cases/register.use-case';
 import { RegisterDto } from './dto/register.dto.';
-import { UserDto } from 'src/user/application/dto/user.dto';
+import { RegisterResponseDto } from './dto/register-response.dto';
 
 /**
  * Controlador HTTP del slice auth.
@@ -29,7 +29,7 @@ export class AuthController {
    */
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() body: RegisterDto): Promise<UserDto> {
+  async register(@Body() body: RegisterDto): Promise<RegisterResponseDto> {
     return this.registerUseCase.execute(body.name, body.email, body.password);
   }
 }

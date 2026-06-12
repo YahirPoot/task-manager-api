@@ -14,6 +14,9 @@ import { IHasher } from './application/contracts/hasher.interface';
 
 // Implementaciones de infraestructura
 import { NativeHasher } from './infrastructure/services/native-hasher.service';
+import { IToken } from './application/contracts/token.interface';
+import { TokenService } from './infrastructure/services/token.service';
+import { JwtModule } from '@nestjs/jwt';
 
 /**
  * Módulo del slice auth.
@@ -28,8 +31,16 @@ import { NativeHasher } from './infrastructure/services/native-hasher.service';
   imports: [
     // Importamos UserModule para acceder a IUserService (el único canal inter-slice)
     UserModule,
+    // Importamos JwtModule para que provea JwtService al TokenService
+    JwtModule.register({
+      global: false, // Solo disponible en este módulo (buenas prácticas de aislamiento)
+      secret: process.env.JWT_SECRET || 'super-secret', // idealmente usar env variables
+    }),
   ],
   controllers: [AuthController],
+  // Los servicios se registran aquí (ejemplo de providers: Pueden ser instances, classes o factories)
+  // En este caso son classes que implementan interfaces (como IHasher y IToken) 
+  // Tambien se pueden registrar casos de uso que nos sirven para inyectarlos a traves de las interfaces
   providers: [
     // Caso de uso de registro — orquesta hasheo + creación de usuario
     RegisterUseCase,
@@ -39,6 +50,10 @@ import { NativeHasher } from './infrastructure/services/native-hasher.service';
       provide: IHasher,
       useClass: NativeHasher,
     },
+    {
+      provide: IToken, 
+      useClass: TokenService
+    }
   ],
 })
 export class AuthModule {}
