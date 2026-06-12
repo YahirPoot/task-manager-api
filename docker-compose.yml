@@ -4,11 +4,11 @@ services:
     container_name: task-manager-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mypassword123
-      POSTGRES_DB: task_manager
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABSE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     ports:
-      - "5432:5432"
+      - "${DATABASE_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
