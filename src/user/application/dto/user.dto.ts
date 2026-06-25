@@ -1,3 +1,6 @@
+import { Role } from "src/user/domain/entities/user.entity";
+
+
 /**
  * DTO utilizado para transferir los datos necesarios en la creación/registro de un usuario.
  * Contiene el hash de la contraseña procesada previamente en la capa de aplicación.
@@ -9,6 +12,8 @@ export class RegisterUserDto {
   email: string;
   /** Hash de la contraseña generada con scrypt nativo — nunca texto plano */
   passwordHash: string;
+  /** Rol del usuario */
+  role?: string;
 }
 
 /**
@@ -22,6 +27,8 @@ export class UserDto {
   name: string;
   /** Correo electrónico del usuario */
   email: string;
+  /** Rol del usuario */
+  role: Role;
   /** Fecha de creación del registro */
   createdAt: Date;
   /** Fecha de la última actualización del registro */
@@ -42,6 +49,8 @@ export class UserAuthDto {
   email: string;
   /** Hash de la contraseña del usuario */
   passwordHash: string;
+  /** Rol del usuario */
+  role: Role;
   /** Fecha de creación */
   createdAt: Date;
   /** Fecha de actualización */

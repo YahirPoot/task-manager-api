@@ -14,14 +14,14 @@ export abstract class IToken {
      * @param email - Correo electrónico del usuario.
      * @returns Token de acceso.
      */
-    abstract generateAccessToken(userId: string, email: string): Promise<string>;
+    abstract generateAccessToken(userId: string, email: string, rol: string): Promise<string>;
 
     /**
      * Genera un token de refresco.
      * @param userId - Identificador único del usuario.
      * @returns Token de refresco.
      */
-    abstract generateRefreshToken(userId: string): Promise<string>;
+    abstract generateRefreshToken(userId: string, role: string): Promise<string>;
 
     /**
      * Verifica el token de refresco.

@@ -1,8 +1,17 @@
 import { Email } from '../value-objects/email.vo';
 
 /**
+ * Enumeración de los roles que puede tener un usuario.
+ */
+export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN', 
+  ADMIN = 'ADMIN', 
+  USER = 'USER'
+}
+
+/**
  * Entidad de dominio que representa un usuario de la aplicación.
- *
+ *  
  * Reglas de negocio que protege:
  * - El nombre debe tener al menos 2 caracteres.
  * - El email debe ser válido y se encapsula como Value Object.
@@ -21,6 +30,7 @@ export class UserEntity {
     private email: Email,
     /** Hash de la contraseña generado en la capa de infraestructura/aplicación. */
     private passwordHash: string,
+    private role: Role,
     readonly createdAt: Date,
     readonly updatedAt: Date,
   ) {}
@@ -39,21 +49,22 @@ export class UserEntity {
     name: string,
     email: Email,
     passwordHash: string,
+    role: Role, // Por defecto, el usuario será un usuario normal.
   ): UserEntity {
     const trimmedName = name?.trim();
 
     // Invariante: el nombre es obligatorio y no puede ser demasiado corto.
     if (!trimmedName || trimmedName.length < 2) {
-      throw new Error('El nombre debe tener al menos 2 caracteres.');
+      throw new Error('Name must be at least 2 characters long.');
     }
 
     // Invariante: el hash de contraseña es obligatorio para poder autenticar al usuario.
     if (!passwordHash) {
-      throw new Error('El hash de contraseña es requerido.');
+      throw new Error('Password hash is required.');
     }
 
     const now = new Date();
-    return new UserEntity(id, trimmedName, email, passwordHash, now, now);
+    return new UserEntity(id, trimmedName, email, passwordHash, role, now, now);
   }
 
   /**
@@ -66,10 +77,11 @@ export class UserEntity {
     name: string,
     email: Email,
     passwordHash: string,
+    role: Role,
     createdAt: Date,
     updatedAt: Date,
   ): UserEntity {
-    return new UserEntity(id, name, email, passwordHash, createdAt, updatedAt);
+    return new UserEntity(id, name, email, passwordHash, role, createdAt, updatedAt);
   }
 
   /** Devuelve el nombre visible del usuario. */
@@ -86,4 +98,10 @@ export class UserEntity {
   getPasswordHash(): string {
     return this.passwordHash;
   }
+
+  /** Devuelve el rol del usuario. */
+  getRole(): Role {
+    return this.role;
+  }
+
 }

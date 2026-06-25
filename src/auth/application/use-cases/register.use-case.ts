@@ -37,20 +37,20 @@ export class RegisterUseCase {
    * @param email    - Correo electrónico del usuario.
    * @param password - Contraseña en texto plano (se hashea antes de persistir).
    */
-  async execute(name: string, email: string, password: string): Promise<RegisterResponseDto> {
+  async execute(name: string, email: string, password: string, role: string): Promise<RegisterResponseDto> {
     // Hashear la contraseña — el texto plano nunca llega al slice user
     const passwordHash = await this.hasher.hash(password);
 
     // Generar el token de acceso y el token de refresco solo si se creo el usuario
     // Delegar el registro al slice user vía el contrato IUserService
-    const user = await this.userService.register({ name, email, passwordHash });
+    const user = await this.userService.register({ name, email, passwordHash, role });
 
     if (!user) {
       throw CustomError.badRequest('There was an error and the user could not be created')
     }
 
-    const accessToken = await this.tokenService.generateAccessToken(user.id, user.email);
-    const refreshToken = await this.tokenService.generateRefreshToken(user.id);
+    const accessToken = await this.tokenService.generateAccessToken(user.id, user.email, user.role);
+    const refreshToken = await this.tokenService.generateRefreshToken(user.id, user.role);
     
 
     return {

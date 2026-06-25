@@ -14,6 +14,7 @@ export class UserResponseMapper {
       id: user.id,
       name: user.getName(),
       email: user.getEmail().getValue(),
+      role: user.getRole(),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

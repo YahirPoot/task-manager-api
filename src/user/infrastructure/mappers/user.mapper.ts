@@ -1,5 +1,5 @@
 import { User as PrismaUser } from '../../../generated/prisma/client';
-import { UserEntity } from '../../domain/entities/user.entity';
+import { Role, UserEntity } from '../../domain/entities/user.entity';
 import { Email } from '../../domain/value-objects/email.vo';
 
 /**
@@ -15,6 +15,7 @@ export class UserMapper {
       prismaUser.name,
       Email.fromPersistence(prismaUser.email),
       prismaUser.password,
+      prismaUser.role as Role,
       prismaUser.createdAt,
       prismaUser.updatedAt,
     );
@@ -29,6 +30,7 @@ export class UserMapper {
       name: user.getName(),
       email: user.getEmail().getValue(),
       password: user.getPasswordHash(),
+      role: user.getRole()
     };
   }
 }

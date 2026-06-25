@@ -53,6 +53,7 @@ export class UserService implements IUserService {
       name: user.getName(),
       email: user.getEmail().getValue(),
       passwordHash: user.getPasswordHash(),
+      role: user.getRole(),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
