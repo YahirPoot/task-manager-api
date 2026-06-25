@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CustomError } from '../../../shared/errors/custom.error';
 import { UserRepository } from '../../domain/repositories/user.repository';
-import { UserEntity } from '../../domain/entities/user.entity';
+import { UserEntity, Role } from '../../domain/entities/user.entity';
 import { Email } from '../../domain/value-objects/email.vo';
 import { RegisterUserDto, UserDto } from '../dto/user.dto';
 
@@ -51,6 +51,15 @@ export class RegisterUseCase {
     // Generar un identificador único de forma nativa (sin dependencias externas)
     const userId = randomUUID();
 
+    // Mapear el rol del DTO (string) al Enum de Dominio (Role).
+    // Si no viene, se asigna Role.USER por defecto.
+    let userRole: Role = Role.USER;
+    if (dto.role === 'SUPER_ADMIN') {
+      userRole = Role.SUPER_ADMIN;
+    } else if (dto.role === 'ADMIN') {
+      userRole = Role.ADMIN;
+    }
+
     // Crear la entidad de dominio — la fábrica valida las invariantes de negocio
     let userEntity: UserEntity;
     try {
@@ -59,6 +68,7 @@ export class RegisterUseCase {
         dto.name,
         emailVo,
         dto.passwordHash,
+        userRole,
       );
     } catch (error: any) {
       // Atrapamos el error de la entidad y lo mapeamos a CustomError
@@ -73,6 +83,7 @@ export class RegisterUseCase {
       id: savedUser.id,
       name: savedUser.getName(),
       email: savedUser.getEmail().getValue(),
+      role: savedUser.getRole(),
       createdAt: savedUser.createdAt,
       updatedAt: savedUser.updatedAt,
     };

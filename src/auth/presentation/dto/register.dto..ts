@@ -13,4 +13,7 @@ export class RegisterDto {
    * Se hashea en la capa de aplicación (RegisterUseCase) antes de pasarla al slice user.
    */
   password: string;
+
+  /** Rol del usuario */
+  role?: string;
 }

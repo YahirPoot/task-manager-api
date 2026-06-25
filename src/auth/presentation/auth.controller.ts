@@ -30,6 +30,6 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() body: RegisterDto): Promise<RegisterResponseDto> {
-    return this.registerUseCase.execute(body.name, body.email, body.password);
+    return this.registerUseCase.execute(body.name, body.email, body.password, body.role!);
   }
 }

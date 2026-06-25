@@ -18,4 +18,5 @@ export class RegisterResponseDto {
     accessToken: string;
     /** Refresh Token para mantener la sesión activa del usuario*/
     refreshToken: string;
+    
 }
