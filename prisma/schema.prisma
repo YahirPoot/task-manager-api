@@ -26,12 +26,18 @@ enum TaskStatus {
   CANCELLED
 }
 
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
   password  String
-
+  role      Role     @default(USER)
   tasks          Task[]
   refreshTokens  RefreshToken[]
 
